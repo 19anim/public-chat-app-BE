@@ -33,6 +33,7 @@ const AuthController = {
         password: hashedPassword,
         gender,
         profilePic,
+        email: "",
       });
 
       generateAccessTokenAndSetCookie(newUser._id, res);
@@ -49,7 +50,7 @@ const AuthController = {
     }
   },
 
-  singIn: async (req, res) => {
+  signIn: async (req, res) => {
     try {
       const { username, password } = req.body;
       const user = await UserModel.findOne({ username: username });
