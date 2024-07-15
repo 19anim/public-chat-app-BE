@@ -17,10 +17,10 @@ const MessageController = {
         receiverId: receiverId,
       });
 
-      const participantsId = [...receiverId, user._id].sort();
+      const participantIds = [...receiverId, user._id].sort();
 
       let conversation = await ConversationModel.findOne({
-        participants: [...participantsId],
+        participantId: [...participantIds],
       });
 
       if (!conversation) {
@@ -39,7 +39,7 @@ const MessageController = {
         }, "");
 
         conversation = await ConversationModel.create({
-          participants: [...participantsId],
+          participantId: [...participantIds],
           conversationName: `Conversation of ${conversationName}, ${user.username}`,
         });
       }
@@ -48,7 +48,7 @@ const MessageController = {
       conversation.save();
       newMessage.save();
 
-      res.status(201).json({ newMessage });
+      res.status(201).json(newMessage);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -56,12 +56,14 @@ const MessageController = {
 
   getAllMessages: async (req, res) => {
     try {
-      const { conversationId } = req.body;
-      const conversation = await ConversationModel.findById(conversationId).populate("messages");
+      const { conversationId } = req.params;
+      const conversation = await ConversationModel.findById(
+        conversationId
+      ).populate("messages");
       if (!conversation) {
         return res.status(401).json({ error: "Conversation not found" });
       }
-      return res.status(200).json({ conversation });
+      return res.status(200).json(conversation);
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
