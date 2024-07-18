@@ -59,7 +59,14 @@ const MessageController = {
       const { conversationId } = req.params;
       const conversation = await ConversationModel.findById(
         conversationId
-      ).populate("messages");
+      ).populate({
+        path: "messages",
+        populate: {
+          path: "senderId",
+          model: UserModel,
+          select: "-password",
+        },
+      });
       if (!conversation) {
         return res.status(401).json({ error: "Conversation not found" });
       }
