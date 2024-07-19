@@ -7,10 +7,19 @@ const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const route = require("../src/routes/index.route");
+const { Server } = require("socket.io");
+const { createServer } = require("node:http");
 
 dotenv.config({ path: "./src/.env" });
 const port = process.env.PORT || 3000;
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:3000"],
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -20,6 +29,30 @@ app.use(morgan("common"));
 route(app);
 moongose.connect(process.env.MONGODB_URL).then(console.log("Connected to DB"));
 
-app.listen(port, () => {
+const userSocketMap = {};
+
+const getReceiverSocketId = (receiverId) => {
+  const ReceiverSocketId = receiverId.map((Id) => {
+    return userSocketMap[Id];
+  });
+  return ReceiverSocketId;
+};
+
+io.on("connection", (socket) => {
+  const userId = socket.handshake.query.userId;
+  if (userId !== undefined) userSocketMap[userId] = socket.id;
+
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+  socket.on("disconnect", () => {
+    delete userSocketMap[userId];
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  });
+});
+
+server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
+module.exports.getReceiverSocketId = getReceiverSocketId;
+module.exports.io = io;

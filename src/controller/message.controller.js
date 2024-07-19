@@ -2,11 +2,12 @@ const mongoose = require("mongoose");
 const UserModel = require("../model/user.model");
 const MessageModel = require("../model/message.model");
 const ConversationModel = require("../model/conversation.model");
+const index = require("../index");
 
 const MessageController = {
   sendMessage: async (req, res) => {
     try {
-      const { receiverId, messageContent } = req.body;
+      const { receiverId, messageContent, userSocketMap } = req.body;
       const user = req.user;
       if (receiverId.length === 0) {
         return res.status(401).json({ error: "No recipient is provided" });
@@ -45,6 +46,27 @@ const MessageController = {
       }
 
       conversation.messages.push(newMessage._id);
+
+      // emit event for live chat
+      const tempMessage = await newMessage.populate([
+        {
+          path: "senderId",
+          model: UserModel,
+          select: "-password",
+        },
+        {
+          path: "receiverId",
+          model: UserModel,
+          select: "-password",
+        },
+      ]);
+      const receiverSocketId = index.getReceiverSocketId(receiverId);
+      if (receiverSocketId.length > 0) {
+        receiverSocketId.forEach((socketId) => {
+          index.io.to(socketId).emit("newMessage", tempMessage);
+        });
+      }
+
       conversation.save();
       newMessage.save();
 
