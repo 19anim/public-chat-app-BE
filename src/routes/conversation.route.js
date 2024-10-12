@@ -13,5 +13,15 @@ router.get(
   isAuthenticated,
   ConversationController.queryConversations
 );
+router.post(
+  "/createConversation",
+  isAuthenticated,
+  ConversationController.createNewConversation
+);
+router.get(
+  "/findConversation",
+  isAuthenticated,
+  ConversationController.getConversationBetweenTwoAccount
+);
 
 module.exports = router;
