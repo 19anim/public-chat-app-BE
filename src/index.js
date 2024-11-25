@@ -55,11 +55,5 @@ server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 
-app.use(express.static(path.join(__originalDirname, "/client/dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__originalDirname, "client", "dist", "index.html"));
-});
-
 module.exports.getReceiverSocketId = getReceiverSocketId;
 module.exports.io = io;
