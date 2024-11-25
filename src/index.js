@@ -22,6 +22,10 @@ const io = new Server(server, {
   },
 });
 
+server.prependListener("request", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+});
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use(cookieParser());
