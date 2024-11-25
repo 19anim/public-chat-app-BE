@@ -9,6 +9,7 @@ const path = require("path");
 const route = require("../src/routes/index.route");
 const { Server } = require("socket.io");
 const { createServer } = require("node:http");
+const __originalDirname = path.resolve();
 
 dotenv.config({ path: "./src/.env" });
 const port = process.env.PORT || 3000;
@@ -52,6 +53,12 @@ io.on("connection", (socket) => {
 
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
+});
+
+app.use(express.static(path.join(__originalDirname, "/client/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__originalDirname, "client", "dist", "index.html"));
 });
 
 module.exports.getReceiverSocketId = getReceiverSocketId;
